@@ -25,7 +25,7 @@ async fn main() {
         let pool_clone = pool.clone(); // Clone here
         let client = mqtt::create_mqtt_client();
         async move {
-            mqtt::subscribe_to_topic(client, pool_clone).await; // Use cloned pool
+            mqtt::subscribe_to_topic(&client, &pool_clone).await; // Use cloned pool
         }
     });
 
@@ -33,6 +33,7 @@ async fn main() {
         api::start_task(pool).await
     });
     
+    println!("Starting Server and MQTT backend tasks...");
     let (mqtt_task_result, server_task_result) = tokio::join!(mqtt_task, server_task);
     if let Err(e) = server_task_result {
         eprintln!("Server task failed: {e}");

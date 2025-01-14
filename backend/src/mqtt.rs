@@ -20,12 +20,13 @@ pub fn create_mqtt_client() -> mqtt::Client {
 }
 
 
-pub async fn subscribe_to_topic(client: mqtt::Client, pool: sqlx::Pool<sqlx::Postgres>) {
+pub async fn subscribe_to_topic(client: &mqtt::Client, pool: &sqlx::Pool<sqlx::Postgres>) {
+    println!("Subscribing to topic: 'homestead/cpu'");
     let rx = client.start_consuming();
-    client.subscribe("homestead/cpu", 1).unwrap();
-
+    client.subscribe("homestead/cpu", 1).expect("subscribe failed");
+    let pool_clone = pool.clone();
     tokio::spawn(async move {
-        for msg in rx.iter() {
+        for msg in rx {
             match msg {
                 Some(msg) => {
                     println!("Received: {}", msg);
@@ -33,7 +34,7 @@ pub async fn subscribe_to_topic(client: mqtt::Client, pool: sqlx::Pool<sqlx::Pos
                     let src_timestamp = 10;
                     let cpu_temp= 1.0;
                     let cpu_volt= 1.0;
-                    if let Err(e) = db::add_entry(&pool, src_timestamp, cpu_temp, cpu_volt).await {
+                    if let Err(e) = db::add_entry(&pool_clone, src_timestamp, cpu_temp, cpu_volt).await {
                         eprintln!("Failed to add entry to database: {}", e);
                     }
                 }
@@ -43,5 +44,5 @@ pub async fn subscribe_to_topic(client: mqtt::Client, pool: sqlx::Pool<sqlx::Pos
                 }
             }
         }
-    });
+    }).await;
 }
