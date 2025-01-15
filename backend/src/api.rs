@@ -1,4 +1,5 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{http, web, App, HttpResponse, HttpServer, Responder};
+use actix_cors::Cors;
 use sqlx::PgPool;
 
 use crate::db;
@@ -19,7 +20,15 @@ async fn get_data(pool: web::Data<PgPool>) -> impl Responder {
 pub async fn start_task(pool: PgPool) {
     println!("Starting HTTP server at {ADDRESS}...");
     match HttpServer::new( move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000")
+            .allowed_methods(vec!["GET", "POST"])
+            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+            .allowed_header(http::header::CONTENT_TYPE)
+            .max_age(3600);
+
         App::new()
+            .wrap(cors)
             .app_data(web::Data::new(pool.clone())) // Share the pool across handlers
             .route("/", web::get().to(get_data)) // Define the route to get data
     })
