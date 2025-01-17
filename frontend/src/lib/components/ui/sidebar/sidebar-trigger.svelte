@@ -17,18 +17,19 @@
 	const sidebar = useSidebar();
 </script>
 
-<Button
-	type="button"
+<button
 	onclick={(e) => {
 		onclick?.(e);
 		sidebar.toggle();
 	}}
 	data-sidebar="trigger"
-	variant="ghost"
 	size="icon"
-	class={cn('h-7 w-7', className)}
+	class={cn(
+		'hover:bg-accent hover:text-accent-foreground flex h-full w-full items-center justify-center transition-colors',
+		className
+	)}
 	{...restProps}
 >
 	<PanelLeft />
 	<span class="sr-only">Toggle Sidebar</span>
-</Button>
+</button>

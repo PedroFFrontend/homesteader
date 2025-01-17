@@ -72,7 +72,11 @@ pub async fn create_table(pool: &PgPool) -> Result<(), sqlx::Error> {
 
 pub async fn fetch_all_data(pool: &PgPool) -> Result<Vec<SensorData>, sqlx::Error> {
     println!("Fetching all data");
-     const FETCH_QUERY: &str = "SELECT * FROM sensor_data;";
+     const FETCH_QUERY: &str = r#"
+        SELECT * 
+        FROM sensor_data
+        ORDER BY id;
+     "#;
     match sqlx::query_as::<_, SensorData>(FETCH_QUERY)
         .fetch_all(pool)
         .await {

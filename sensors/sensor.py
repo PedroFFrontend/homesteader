@@ -62,7 +62,7 @@ try:
         }
         client.publish(topic, str(payload))
         print(f"Published {payload} to {topic}")
-        time.sleep(5)  # Wait for 5 seconds before publishing the next message
+        time.sleep(30)  # Wait for 5 seconds before publishing the next message
 except KeyboardInterrupt:
     print("Exiting...")
 finally:

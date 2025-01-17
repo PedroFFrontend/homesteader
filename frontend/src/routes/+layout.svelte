@@ -12,8 +12,8 @@
 <SidebarProvider>
 	<Sidebar />
 	<div class="flex w-full flex-col">
-		<header class="bg-sidebar flex h-[41px] items-center border-b px-2">
-			<div class="flex h-full items-center border-r pr-2">
+		<header class="bg-sidebar flex h-[41px] items-center border-b pr-2">
+			<div class="flex h-full w-[40px] items-center justify-center border-r">
 				<SidebarTrigger />
 			</div>
 		</header>
