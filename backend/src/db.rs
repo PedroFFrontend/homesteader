@@ -1,20 +1,17 @@
-use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool};
-
-#[derive(Debug, FromRow, Serialize, Deserialize)]
-pub struct SensorData {
-    id: i32,
-    src_timestamp: i64,
-    cpu_temp: f64,
-    cpu_volt: f64,
-}
-
+use sqlx::{PgPool, Pool, Postgres};
 use sqlx::postgres::PgPoolOptions;
 use tokio::time::sleep;
 use std::env;
 use std::time::Duration;
 
-pub async fn init_pg_pool() -> Result<sqlx::PgPool, sqlx::Error> {
+pub mod sensors;
+pub mod users;
+
+#[derive(Debug, Clone)]
+pub struct DbInitializationError;
+
+
+async fn connect_to_db() -> Result<sqlx::PgPool, sqlx::Error> {
     // Load database URL from environment variable
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     println!("Initializing db at {database_url}");
@@ -40,71 +37,37 @@ pub async fn init_pg_pool() -> Result<sqlx::PgPool, sqlx::Error> {
             }
         }
     }
-
-
-
-    // let pool = PgPoolOptions::new()
-    //     .max_connections(5) // Set the maximum number of connections
-    //     .connect(&database_url) // Connect to the database
-    //     .await?;
-    
     Err(sqlx::Error::PoolTimedOut)
 }
 
-
-pub async fn create_table(pool: &PgPool) -> Result<(), sqlx::Error> {
-    println!("Creating 'sensor_data' table if it doesn't exist");
-    const CREATE_TABLE_QUERY : &str = r#"
-        CREATE TABLE IF NOT EXISTS sensor_data (
-            id SERIAL PRIMARY KEY,
-            dst_timestamp BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT,
-            src_timestamp BIGINT NOT NULL,
-            cpu_temp FLOAT8 NOT NULL,
-            cpu_volt FLOAT8 NOT NULL
-        );
-    "#;
-
-    sqlx::query(CREATE_TABLE_QUERY)
-        .execute(pool)
-        .await?;
-    Ok(())
-}
-
-pub async fn fetch_all_data(pool: &PgPool) -> Result<Vec<SensorData>, sqlx::Error> {
-    println!("Fetching all data");
-     const FETCH_QUERY: &str = r#"
-        SELECT * 
-        FROM sensor_data
-        ORDER BY id;
-     "#;
-    match sqlx::query_as::<_, SensorData>(FETCH_QUERY)
-        .fetch_all(pool)
-        .await {
-            Ok(rows) => {
-                let length = rows.len();
-                println!("Fetched all {length} rows");
-                Ok(rows)},
-            Err(e) => {
-                eprintln!("Error fetching all data: {e}");
-                Err(e)
-            }
+pub async fn initialize_db() -> Result<Pool<Postgres>,DbInitializationError>{
+    let pool = match connect_to_db().await {
+        Ok(pool) => pool,
+        Err(e) => {
+            eprintln!("Failed to initialize database pool: {}", e);
+            return Err(DbInitializationError); // Exit early or handle accordingly
         }
+    };
+
+    match users::create_table(&pool).await {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("Failed to create users table: {}", e);
+            return Err(DbInitializationError); // Exit early or handle accordingly
+        }
+    }
+
+    match sensors::create_table(&pool).await {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("Failed to create sensor table: {}", e);
+            return Err(DbInitializationError); // Exit early or handle accordingly
+        }
+    }
+    Ok(pool)
 }
 
-pub async fn add_entry(pool: &PgPool, src_timestamp: i64, cpu_temp: f64, cpu_volt: f64) -> Result<i32, sqlx::Error> {
-    println!("Adding {src_timestamp} {cpu_temp} {cpu_volt}");
-    const INSERT_QUERY: &str = r#"
-        INSERT INTO sensor_data (src_timestamp, cpu_temp, cpu_volt)
-        VALUES ($1, $2, $3)
-        RETURNING id;
-    "#;
 
-    let id: (i32,) = sqlx::query_as(INSERT_QUERY)
-        .bind(src_timestamp)
-        .bind(cpu_temp)
-        .bind(cpu_volt)
-        .fetch_one(pool)
-        .await.expect("add_entry failed");
 
-    Ok(id.0)
-}
+
+
