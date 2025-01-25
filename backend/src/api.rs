@@ -1,12 +1,22 @@
+use std::fmt::Debug;
+
 use actix_web::{get, http, post, web::{self, Json}, App, HttpResponse, HttpServer, Responder};
 use actix_cors::Cors;
+use serde::Deserialize;
 use sqlx::PgPool;
 
 use crate::db::{self, users::AddUserBody};
+mod weather;
 
 const ADDRESS : &str = "0.0.0.0:8080";
 
-#[get("/")]
+#[derive(Deserialize)]
+struct GetWeatherQuery {
+    lat: f64,
+    lon: f64
+}
+
+#[get("/sensors")]
 async fn get_data(pool: web::Data<PgPool>) -> impl Responder {
     println!("get_data called!");
     let data = match db::sensors::get_all_data(pool.get_ref()).await {
@@ -47,6 +57,27 @@ async fn health_check_db(pool: web::Data<PgPool>) -> impl Responder {
     }
 }
 
+#[get("/weather/current")]
+async fn get_current_weather(_: web::Data<PgPool>, query: web::Query<GetWeatherQuery>) -> impl Responder {
+    match weather::fetch_current(query.lat, query.lon).await {
+        Ok(response) => HttpResponse::Ok().body(serde_json::to_string(&response).unwrap()),
+        Err(_) => HttpResponse::BadRequest().body(())
+    }
+}
+
+#[get("/weather/forecast")]
+async fn get_forecast_weather(_: web::Data<PgPool>, query: web::Query<GetWeatherQuery>) -> impl Responder {
+    match weather::fetch_forecast(query.lat, query.lon).await {
+        Ok(response) => HttpResponse::Ok().body(serde_json::to_string(&response).unwrap()),
+        Err(e) => match e {
+            weather::models::FetchForecastWeatherError::JsonParseError => HttpResponse::InternalServerError().body(()),
+            weather::models::FetchForecastWeatherError::RequestError => HttpResponse::BadRequest().body(()),
+            weather::models::FetchForecastWeatherError::BadStatusError(e) => HttpResponse::BadRequest().body(()),
+        }
+    }
+}
+
+
 pub async fn start(pool: PgPool) {
     println!("Starting HTTP server at {ADDRESS}...");
     match HttpServer::new( move || {
@@ -63,11 +94,9 @@ pub async fn start(pool: PgPool) {
             .service(get_data)
             .service(health_check)
             .service(health_check_db)
-
             .service(add_user)
-            // .route("/", web::get().to(get_data))
-            //  .route("/add_user", web::post().to(add_user)) 
-
+            .service(get_current_weather)
+            .service(get_forecast_weather)
     })
     .bind(ADDRESS)
     .expect("Failed to bind server")

@@ -1,4 +1,4 @@
-use sqlx::{PgPool, Pool, Postgres};
+use sqlx::{Pool, Postgres};
 use sqlx::postgres::PgPoolOptions;
 use tokio::time::sleep;
 use std::env;

@@ -1,16 +1,26 @@
-type GeospatialLocation = {
+import { browser } from '$app/environment';
+import weather from '$lib/backend/weather.svelte';
+
+export type GeospatialLocation = {
 	latitude: number;
 	longitude: number;
 };
 
 export class User {
-	location: GeospatialLocation | undefined;
+	location = $state<GeospatialLocation | undefined>(undefined);
 	usdaZone: number | undefined;
 
-	constructor() {}
+	constructor() {
+		if (!browser) return;
+		const stored = localStorage.getItem('user-location');
+		const location = stored ? (JSON.parse(stored) as GeospatialLocation) : null;
+		if (location) this.location = location;
+	}
 
-	setLocation(latitude: number, longitude: number) {
-		this.location = { latitude, longitude };
+	setLocation(location: GeospatialLocation) {
+		localStorage.setItem('user-location', JSON.stringify(location));
+		this.location = { latitude: location.latitude, longitude: location.longitude };
+		weather.setLocation(location);
 	}
 }
 

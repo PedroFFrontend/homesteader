@@ -14,27 +14,27 @@
 			title: 'Overview',
 			url: '/',
 			icon: Dashboard
-		},
-		{
-			title: 'Sensors',
-			url: '/sensors',
-			icon: Radio
-		},
-		{
-			title: 'LoRaWAN Gateway',
-			url: '/gateway',
-			icon: RadioTower
-		},
-		{
-			title: 'Database',
-			url: '/database',
-			icon: Database
-		},
-		{
-			title: 'Settings',
-			url: '/settings',
-			icon: Settings
 		}
+		// {
+		// 	title: 'Sensors',
+		// 	url: '/sensors',
+		// 	icon: Radio
+		// },
+		// {
+		// 	title: 'LoRaWAN Gateway',
+		// 	url: '/gateway',
+		// 	icon: RadioTower
+		// },
+		// {
+		// 	title: 'Database',
+		// 	url: '/database',
+		// 	icon: Database
+		// },
+		// {
+		// 	title: 'Settings',
+		// 	url: '/settings',
+		// 	icon: Settings
+		// }
 	];
 </script>
 

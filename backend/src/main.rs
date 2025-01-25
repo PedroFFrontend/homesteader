@@ -14,14 +14,14 @@ async fn main() {
         }
     };
 
-    // Create a separate connection pool for MQTT message processing
-    let mqtt_pool = match db::initialize_db().await {
-        Ok(pool) => pool,
-        Err(e) => {
-            eprintln!("Failed to initialize MQTT database pool: {:?}", e);
-            return;
-        }
-    };
+    // // Create a separate connection pool for MQTT message processing
+    // let mqtt_pool = match db::initialize_db().await {
+    //     Ok(pool) => pool,
+    //     Err(e) => {
+    //         eprintln!("Failed to initialize MQTT database pool: {:?}", e);
+    //         return;
+    //     }
+    // };
 
     // Test database connection after initialization
     if let Err(e) = sqlx::query("SELECT 1").fetch_one(&pool).await {
@@ -30,10 +30,10 @@ async fn main() {
     }
 
     let mqtt_task: tokio::task::JoinHandle<()> = tokio::spawn({
-        // let pool_clone = pool.clone(); 
+        let pool_clone = pool.clone(); 
         let client = mqtt::create_mqtt_client();
         async move {
-            mqtt::subscribe_to_topic(&client, &mqtt_pool).await 
+            mqtt::subscribe_to_topic(&client, &pool_clone).await 
         }
     });
 

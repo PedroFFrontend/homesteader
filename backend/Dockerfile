@@ -51,6 +51,11 @@ FROM debian:bookworm-slim
 #     apt-get install -y cmake && \
 #     rm -rf /var/lib/apt/lists/*
 
+# Add certificates so reqwest works
+RUN apt-get update && apt-get install -y ca-certificates
+RUN update-ca-certificates
+
+
 # Copy the built binary from the builder stage
 COPY --from=builder /app/target/release/backend /app/backend
 

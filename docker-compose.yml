@@ -58,6 +58,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      OPENWEATHERMAP_API_KEY: ${OPENWEATHERMAP_API_KEY}
     networks:
       - mqtt_network
       - default
@@ -66,12 +67,8 @@ services:
 
   frontend:
     build: ./frontend
-    # command: tail -F anything
     ports:
       - "3000:5173"
-
-    # depends_on:
-    #   - backend
     develop:
       watch:
         - action: sync
@@ -83,17 +80,6 @@ services:
           path: ./frontend/package.json
           ignore:
             - node_modules/
-    # volumes:
-    ## it avoids mounting the workspace root
-    ## because it may cause OS specific node_modules folder
-    ## or build folder(.svelte-kit) to be mounted.
-    ## they conflict with the temporary results from docker space.
-    ## this is why many mono repos utilize ./src folder
-    # - ./frontend/src:/$YOUR_APP_DIR/src
-    # - ./frontend/static:/$YOUR_APP_DIR/static
-    # - ./frontend/vite.config.js:/$YOUR_APP_DIR/vite.config.js
-    # - ./frontend/tsconfig.json:/$YOUR_APP_DIR/tsconfig.json
-    # - ./frontend/svelte.config.js:/$YOUR_APP_DIR/svelte.config.js
 
 volumes:
   postgres_data:
