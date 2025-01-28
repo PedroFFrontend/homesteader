@@ -6,7 +6,7 @@
 	import Settings from 'lucide-svelte/icons/settings';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { page } from '$app/stores';
-	import ThemeButton from './ThemeButton.svelte';
+	import ThemeButton from '../../components/ThemeButton.svelte';
 
 	// Menu items.
 	const items = [
