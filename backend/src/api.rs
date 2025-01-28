@@ -1,11 +1,9 @@
-use std::fmt::Debug;
-
 use actix_web::{get, http, post, web::{self, Json}, App, HttpResponse, HttpServer, Responder};
 use actix_cors::Cors;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::db::{self, users::AddUserBody};
+use crate::{db::{self, users::AddUserBody}, mqtt};
 mod weather;
 
 const ADDRESS : &str = "0.0.0.0:8080";
@@ -18,7 +16,6 @@ struct GetWeatherQuery {
 
 #[get("/sensors")]
 async fn get_data(pool: web::Data<PgPool>) -> impl Responder {
-    println!("get_data called!");
     let data = match db::sensors::get_all_data(pool.get_ref()).await {
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => {
@@ -26,8 +23,26 @@ async fn get_data(pool: web::Data<PgPool>) -> impl Responder {
             HttpResponse::InternalServerError().finish()
         },
     };
-    println!("get_data finished");
     data
+}
+
+#[get("/actuator/state")]
+async fn get_actuator_state(pool: web::Data<PgPool>, client:web::Data<paho_mqtt::Client>) -> impl Responder {
+    return mqtt::request(&client,&pool, "homestead/actuator/get_state","");
+}
+
+#[derive(Serialize, Deserialize)]
+struct SetActuatorStatePayload {
+    new_state: bool
+}
+
+#[post("/actuator/state")]
+async fn set_actuator_state(pool: web::Data<PgPool>, client:web::Data<paho_mqtt::Client>, body: Json<SetActuatorStatePayload>) -> impl Responder {
+    let new_state = match body.new_state {
+        true => "true",
+        false => "false"
+    };
+    return mqtt::request(&client,&pool, "homestead/actuator/set_state", new_state);
 }
 
 #[post("/add_user")]
@@ -78,7 +93,7 @@ async fn get_forecast_weather(_: web::Data<PgPool>, query: web::Query<GetWeather
 }
 
 
-pub async fn start(pool: PgPool) {
+pub async fn start(pool: PgPool, client: paho_mqtt::Client) {
     println!("Starting HTTP server at {ADDRESS}...");
     match HttpServer::new( move || {
         let cors = Cors::default()
@@ -90,13 +105,18 @@ pub async fn start(pool: PgPool) {
 
         App::new()
             .wrap(cors)
-            .app_data(web::Data::new(pool.clone())) // Share the pool across handlers
+            .app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(client.clone())) // Share the pool across handlers
+            // Share the pool across handlers
             .service(get_data)
             .service(health_check)
             .service(health_check_db)
             .service(add_user)
             .service(get_current_weather)
             .service(get_forecast_weather)
+            .service(get_actuator_state)
+            .service(set_actuator_state)
+
     })
     .bind(ADDRESS)
     .expect("Failed to bind server")

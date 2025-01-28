@@ -14,31 +14,20 @@ async fn main() {
         }
     };
 
-    // // Create a separate connection pool for MQTT message processing
-    // let mqtt_pool = match db::initialize_db().await {
-    //     Ok(pool) => pool,
-    //     Err(e) => {
-    //         eprintln!("Failed to initialize MQTT database pool: {:?}", e);
-    //         return;
-    //     }
-    // };
-
-    // Test database connection after initialization
-    if let Err(e) = sqlx::query("SELECT 1").fetch_one(&pool).await {
-        eprintln!("Database connection test after initialization failed: {}", e);
-        return;
-    }
+    let client = mqtt::create_mqtt_client();
 
     let mqtt_task: tokio::task::JoinHandle<()> = tokio::spawn({
         let pool_clone = pool.clone(); 
-        let client = mqtt::create_mqtt_client();
+        let client_clone: paho_mqtt::Client = client.clone();
         async move {
-            mqtt::subscribe_to_topic(&client, &pool_clone).await 
+            mqtt::subscribe_to_topic(&client_clone, &pool_clone, "homestead/sensor").await 
         }
     });
 
-    let server_task = tokio::spawn( async {
-        api::start(pool).await
+    let server_task = tokio::spawn( {
+         async move {
+            api::start(pool, client).await
+        }
     });
     
     println!("Starting Server and MQTT backend tasks...");

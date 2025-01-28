@@ -18,10 +18,8 @@ services:
       timeout: 5s
       retries: 15
 
-  sensors:
-    build: ./sensors
-    # ports:
-    #   - 1885:1883
+  devices:
+    build: ./devices
     expose:
       - "1883"
     networks:
@@ -29,6 +27,8 @@ services:
     depends_on:
       mosquitto:
         condition: service_healthy
+    environment:
+      - PYTHONUNBUFFERED=1
 
   postgres:
     image: postgres:15.3-alpine

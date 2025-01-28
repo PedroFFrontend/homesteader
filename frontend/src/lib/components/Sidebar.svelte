@@ -14,12 +14,12 @@
 			title: 'Overview',
 			url: '/',
 			icon: Dashboard
+		},
+		{
+			title: 'Sensors',
+			url: '/sensors',
+			icon: Radio
 		}
-		// {
-		// 	title: 'Sensors',
-		// 	url: '/sensors',
-		// 	icon: Radio
-		// },
 		// {
 		// 	title: 'LoRaWAN Gateway',
 		// 	url: '/gateway',

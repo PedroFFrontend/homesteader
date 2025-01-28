@@ -1,7 +1,9 @@
-use paho_mqtt as mqtt;
+use paho_mqtt::{self as mqtt, Message};
+use paho_mqtt::properties;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use tokio::{task::{self}, time::timeout};
+use uuid::Uuid;
 use std::time::Duration;
 use crate::db;
 
@@ -16,12 +18,12 @@ pub fn create_mqtt_client() -> mqtt::Client {
     let create_opts = mqtt::CreateOptionsBuilder::new()
         .server_uri("mosquitto:1883")
         .client_id("backend")
+        .mqtt_version(mqtt::MQTT_VERSION_5)
         .finalize();
 
     let client = mqtt::Client::new(create_opts).unwrap();
-    let conn_opts = mqtt::ConnectOptionsBuilder::new()
+    let conn_opts = mqtt::ConnectOptionsBuilder::new_v5()
         .keep_alive_interval(Duration::from_secs(20))
-        .clean_session(true)
         .finalize();
 
     client.connect(conn_opts).unwrap();
@@ -29,10 +31,58 @@ pub fn create_mqtt_client() -> mqtt::Client {
 }
 
 
-pub async fn subscribe_to_topic(client: &mqtt::Client, pool: &sqlx::Pool<sqlx::Postgres>)  {
-    println!("Subscribing to topic: 'homestead/cpu'");
+pub fn publish_to_topic(client: &mqtt::Client, _: &sqlx::Pool<sqlx::Postgres>, topic: &str, message:&str) {
+    let msg: Message = Message::new(topic, message, mqtt::QOS_1);
+    match client.publish(msg) {
+        Ok(_) => (),
+        Err(e) => eprintln!("Failed to publish to topic {topic}: {e}")
+    }
+}
+
+pub fn request(client: &mqtt::Client, _: &sqlx::Pool<sqlx::Postgres>, topic: &str, payload: &str) -> String{
+    let response_topic = format!("response/{}", Uuid::new_v4());
+    let correlation_id = Uuid::new_v4().to_string();
+
+    // Subscribe to the response topic
+    client.subscribe(&response_topic, 1).expect("Error subscribing");
+
+    // Start consuming messages
     let rx = client.start_consuming();
-    client.subscribe("homestead/cpu", 1).expect("subscribe failed");
+    let props = mqtt::properties![
+        mqtt::PropertyCode::ResponseTopic => response_topic.to_string(),
+        mqtt::PropertyCode::CorrelationData => correlation_id.to_string(),
+    ];
+
+    // Publish the request
+     let message = mqtt::MessageBuilder::new()        
+        .topic(topic)
+        .payload(payload)
+        .qos(1)
+        .properties(props)
+        .finalize();
+    println!("sending: {:?}", message.properties());
+    client.publish(message).expect("Error publishing request");
+
+    // Wait for the response
+    for msg in rx.iter() {
+        if let Some(msg) = msg {
+            if msg.topic() == response_topic {
+                if let Some(corr_data) = msg.properties().get_binary(mqtt::PropertyCode::CorrelationData) {
+                    if corr_data == correlation_id.as_bytes() {
+                        println!("Received response: {}", msg.payload_str());
+                        return msg.payload_str().to_lowercase();
+                     }
+                }
+            }
+        }
+    }
+    return "timeout".to_string();
+}
+
+pub async fn subscribe_to_topic(client: &mqtt::Client, pool: &sqlx::Pool<sqlx::Postgres>, topic: &str)  {
+    println!("Subscribing to topic: {}",topic);
+    let rx = client.start_consuming();
+    client.subscribe(topic, 1).expect("subscribe failed");
 
     for msg in rx {
         let pool_clone = pool.clone();

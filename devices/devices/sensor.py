@@ -1,14 +1,15 @@
 import paho.mqtt.client as mqtt
 import time
 import random
+import sys
 
 # Define the MQTT broker address and topic
 broker_address = "mosquitto"  # Use "localhost" if running on the same machine
 port = 1883
-topic = "homestead/cpu"
-
-print("starting sensors",{broker_address,port,topic})
-
+protocol = mqtt.MQTTv5
+callback_api_version = mqtt.CallbackAPIVersion.VERSION2
+client_id = "sensor"
+topic = "homestead/" + client_id
 
 def measure_cpu_temp():
     # temp = os.popen("vcgencmd measure_temp").readline() # in raspberry pi
@@ -20,43 +21,43 @@ def measure_cpu_voltage():
     # return float(volts.replace("volt=","").replace("V",""))
     return random.uniform(1,10)
 
-
-# Connect to the broker
-def connect_mqtt():
+def create_client():
     def on_connect(client, userdata, flags, reason_code, properties):
+        if reason_code == 0:
+            print("🟢 "+client_id+" connected to MQTT")
         if reason_code == "Unsupported protocol version":
-            # handle bad protocol version
             print("Unsupported protocol version")
         if reason_code == "Client identifier not valid":
-            # handle bad identifier
             print("Client identifier not valid")
-    # NEW code for both version
     def on_disconnect(client, userdata, flags, reason_code, properties):
         if reason_code == 0:
-            # success disconnect
             print("Disconnected successfully")
         if reason_code > 0:
-            # error processing
             print("Error while disconnecting")
 
     # Create a new MQTT client instance
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, "Sensor")
+    client = mqtt.Client(client_id=client_id, protocol=protocol, callback_api_version=callback_api_version)
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
-    client.connect(broker_address,port)
     return client
 
-print("connecting mqtt")
-client = connect_mqtt()
-print("mqtt connected")
+client = create_client()
+client.loop_start()
+try:
+    print("🟠 "+client_id+" connecting to MQTT...")
+    client.connect(broker_address,port)
+except:
+    print("🔴 "+client_id+" failed to connect to MQTT!")
+    sys.exit(1)
 
-# Publish messages in a loop
+
 try:
     while True:
+        src_timestamp = int(time.time()*1000)
         cpu_temp = str(measure_cpu_temp())
         cpu_volt = str(measure_cpu_voltage())
         payload = {
-            "src_timestamp": int(time.time()*1000),
+            "src_timestamp": src_timestamp,
             "cpu_temp": cpu_temp,
             "cpu_volt": cpu_volt
         }
@@ -66,4 +67,5 @@ try:
 except KeyboardInterrupt:
     print("Exiting...")
 finally:
+    client.loop_stop()
     client.disconnect()
