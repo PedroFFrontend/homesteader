@@ -26,15 +26,8 @@
 		{#if data}
 			<div class="flex flex-col text-sm *:border-b *:p-2">
 				<div class="flex justify-between">
-					<div>Conditions</div>
-					<div>
-						{data.weather[0].description}
-					</div>
-				</div>
-
-				<div class="flex justify-between">
 					<div>Temperature</div>
-					<div>{kelvinToCelsius(data.main.temp).toFixed(0)} ºC</div>
+					<div>{kelvinToCelsius(data.main.temp).toFixed(0)}°C, {data.weather[0].description}</div>
 				</div>
 
 				<div class="flex justify-between">

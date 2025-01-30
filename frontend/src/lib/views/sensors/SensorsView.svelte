@@ -1,6 +1,5 @@
 <script lang="ts">
 	import sensors from '$lib/backend/sensors.svelte';
-	import DeviceButton from '$lib/components/deviceButton/DeviceButton.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { onMount } from 'svelte';
@@ -11,8 +10,6 @@
 </script>
 
 <div class="flex gap-4">
-	<DeviceButton isOn={sensors.actuatorState} toggle={() => sensors.toggleActuatorState()} />
-
 	<div class="flex w-full flex-col items-center">
 		<div class="bg-card max-w-[700px] rounded-lg border shadow">
 			<div class="flex items-center justify-between border-b p-2 pl-3">
@@ -56,11 +53,6 @@
 					{/if}
 				</Table.Body>
 			</Table.Root>
-		</div>
-		<div>
-			{#if !sensors.sensorFetcher.loadedOnce}
-				Loading...
-			{/if}
 		</div>
 	</div>
 </div>

@@ -732,16 +732,16 @@ binary-extensions@^2.0.0:
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.3.0.tgz#f6e14a97858d327252200242d4ccfe522c445522"
   integrity sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==
 
-bits-ui@^1.0.0-next.77:
-  version "1.0.0-next.77"
-  resolved "https://registry.yarnpkg.com/bits-ui/-/bits-ui-1.0.0-next.77.tgz#93250e4e9493e8f544d0c2938b1d288b5d1cd7a9"
-  integrity sha512-IV0AyVEvsRkXv4s/fl4iea5E9W2b9EBf98s9mRMKMc1xHxM9MmtM2r6MZMqftHQ/c+gHTIt3A9EKuTlh7uay8w==
+bits-ui@^1.0.0-next.80:
+  version "1.0.0-next.80"
+  resolved "https://registry.yarnpkg.com/bits-ui/-/bits-ui-1.0.0-next.80.tgz#1d339f5650e9af57e5d727c75c9209111a89bbda"
+  integrity sha512-b6r5QgUwi/feFuZZfvTI+HuSCT1/5NoFTWcuqGTTSMjBAtsnS4NI34dzOpB7enKWR5Cb/UxuGhzS/lXUgoTV8Q==
   dependencies:
     "@floating-ui/core" "^1.6.4"
     "@floating-ui/dom" "^1.6.7"
     "@internationalized/date" "^3.5.6"
     esm-env "^1.1.2"
-    runed "^0.22.0"
+    runed "^0.23.1"
     svelte-toolbelt "^0.7.0"
 
 brace-expansion@^1.1.7:
@@ -1880,10 +1880,10 @@ runed@^0.20.0:
   dependencies:
     esm-env "^1.0.0"
 
-runed@^0.22.0:
-  version "0.22.0"
-  resolved "https://registry.yarnpkg.com/runed/-/runed-0.22.0.tgz#903087d14786de1305c04dcf926e9d8faad6c435"
-  integrity sha512-ZWVXWhOr0P5xdNgtviz6D1ivLUDWKLCbeC5SUEJ3zBkqLReVqWHenFxMNFeFaiC5bfxhFxyxzyzB+98uYFtwdA==
+runed@^0.23.1:
+  version "0.23.1"
+  resolved "https://registry.yarnpkg.com/runed/-/runed-0.23.1.tgz#a6fdfdea17e0845d9f18859d097db3a62b4d53e3"
+  integrity sha512-h1ZDmin0LBoSMEZxvHOJbCWsUBz4099cjI+/rQ4FZystgOq294s5Rh+OEeu9HIObc8XQQEya23eAhJeal0VBuA==
   dependencies:
     esm-env "^1.0.0"
 
@@ -2205,6 +2205,11 @@ util-deprecate@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==
+
+uuid@^11.0.5:
+  version "11.0.5"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.0.5.tgz#07b46bdfa6310c92c3fb3953a8720f170427fc62"
+  integrity sha512-508e6IcKLrhxKdBbcA2b4KQZlLVp2+J5UwQ6F7Drckkc5N9ZJwFa4TgWtsww9UG8fGHbm6gbV19TdM5pQ4GaIA==
 
 vite@^5.4.11:
   version "5.4.11"

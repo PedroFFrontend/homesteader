@@ -1,13 +1,14 @@
 <script lang="ts">
-	import Radio from 'lucide-svelte/icons/radio';
 	import Dashboard from 'lucide-svelte/icons/layout-dashboard';
+	import Cpu from 'lucide-svelte/icons/cpu';
 	import RadioTower from 'lucide-svelte/icons/radio-tower';
 	import Database from 'lucide-svelte/icons/database';
 	import Settings from 'lucide-svelte/icons/settings';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { page } from '$app/stores';
 	import ThemeButton from '../../components/ThemeButton.svelte';
-
+	import Origami from 'lucide-svelte/icons/origami';
+	import { Button } from '$lib/components/ui/button';
 	// Menu items.
 	const items = [
 		{
@@ -18,13 +19,13 @@
 		{
 			title: 'Sensors',
 			url: '/sensors',
-			icon: Radio
+			icon: Cpu
 		}
 		// {
 		// 	title: 'LoRaWAN Gateway',
 		// 	url: '/gateway',
 		// 	icon: RadioTower
-		// },
+		// }
 		// {
 		// 	title: 'Database',
 		// 	url: '/database',
@@ -40,8 +41,25 @@
 
 <Sidebar.Root>
 	<Sidebar.Content>
-		<Sidebar.Header class="flex items-center justify-center border-b font-bold">
-			Homesteader
+		<Sidebar.Header class="flex items-center justify-center font-bold">
+			<Sidebar.Menu>
+				<Sidebar.MenuItem>
+					<Sidebar.MenuButton class="h-12">
+						{#snippet child({ props }: any)}
+							<a href="/" {...props}>
+								<div class="rounded-lg bg-sky-500 p-1">
+									<Origami class="!h-6 !w-6" />
+								</div>
+								Homesteader
+							</a>
+						{/snippet}
+					</Sidebar.MenuButton>
+				</Sidebar.MenuItem>
+			</Sidebar.Menu>
+
+			<!-- <Button href="/" variant="ghost" class="h-12 max-h-none w-full justify-start p-2 text-left">
+				
+			</Button> -->
 		</Sidebar.Header>
 		<Sidebar.Group>
 			<Sidebar.GroupContent>
@@ -51,10 +69,17 @@
 						<Sidebar.MenuItem>
 							<Sidebar.MenuButton isActive={active}>
 								{#snippet child({ props }: any)}
-									<a href={item.url} {...props}>
-										<item.icon />
-										<span>{item.title}</span>
-									</a>
+									{#if item.url}
+										<a href={item.url} {...props}>
+											<item.icon />
+											<span>{item.title}</span>
+										</a>
+									{:else}
+										<span {...props}>
+											<item.icon />
+											<span>{item.title}</span>
+										</span>
+									{/if}
 								{/snippet}
 							</Sidebar.MenuButton>
 						</Sidebar.MenuItem>
