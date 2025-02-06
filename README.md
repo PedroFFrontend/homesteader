@@ -1,6 +1,6 @@
 # Homesteader
 
-** 🚧 Work in Progress**
+🚧 **Work in Progress**
 
 Homesteader is a personal project aimed at creating a comprehensive system for managing and monitoring various aspects of a homestead. The project is currently in its early stages, with plans to eventually open-source it for community contributions.
 
